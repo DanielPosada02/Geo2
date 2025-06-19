@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Factura</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+    .layout {
+      display: flex; min-height: 100vh;
+    }
+    .main-content {
+      flex: 1;
+      padding: 24px 32px;
+      margin: 0 auto;
+    }
+
+    /* FILTROS */
+    .filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 16px;
+    }
+    .search-wrapper {
+      position: relative;
+      width: 300px;
+    }
+    .search-wrapper input {
+      width: 100%; height: 40px;
+      padding: 0 44px 0 16px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+    .search-wrapper .search-icon {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      width: 20px; height: 20px; opacity: 0.6;
+    }
+    #autocomplete-list {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: #fff; border: 1px solid #ccc;
+      max-height: 200px; overflow-y: auto; z-index: 1000;
+      border-radius: 4px;
+    }
+    .autocomplete-item {
+      padding: 8px 12px; cursor: pointer;
+    }
+    .autocomplete-item:hover { background-color: #f0f0f0; }
+
+    .info-select,
+    .editable-input {
+      height: 40px;
+      padding: 0 16px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      background: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    /* CAJAS DE DETALLE */
+    .detalle-container {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .ultimo-agregado {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .ultimo-agregado h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+    }
+    .ultimo-agregado-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .ultimo-agregado-table th,
+    .ultimo-agregado-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    .ultimo-agregado-table thead {
+      background: #f9f9f9;
+      font-weight: bold;
+    }
+
+    /* TABLA PRINCIPAL */
+    .table-container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .tabla-scrollable { height: 65vh; overflow-y: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      color: #333;
+    }
+    thead {
+      position: sticky; top: 0;
+      background: #fff; z-index: 1;
+    }
+    thead th {
+      padding: 14px 16px; text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-weight: bold;
+    }
+    thead th:first-child  { border-top-left-radius: 12px; }
+    thead th:last-child   { border-top-right-radius: 12px; }
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+    }
+    tbody tr:hover { background-color: #f9f9f9; }
+
+    /* BOTONES */
+    .bottom-section {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 24px;
+      padding: 16px;
+      gap: 12px;
+    }
+    .btn-inventario,
+    .btn-accion {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: filter .2s, box-shadow .2s;
+      background: #2164D9;
+      color: #fff;
+    }
+    .btn-inventario:hover,
+    .btn-accion:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .btn-accion img.icon,
+    .btn-inventario img.icon {
+      width: 18px; height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div id="sidebar-container"></div>
+    <div class="main-content">
+
+      <!-- FILTROS -->
+      <div class="filters">
+        <div class="search-wrapper">
+          <input type="text" id="buscador" placeholder="Buscar producto (ref o código)" autocomplete="off" />
+          <img src="https://img.icons8.com/ios-glyphs/30/000000/search--v1.png" class="search-icon" />
+          <div id="autocomplete-list"></div>
+        </div>
+        <select class="info-select">
+          <option disabled selected>Orden</option>
+          <option>Garantía</option>
+          <option>Reparación</option>
+          <option>Venta rápida</option>
+        </select>
+        <input type="text" class="editable-input" placeholder="Orden de trabajo" />
+        <select class="info-select">
+          <option disabled selected>Venta</option>
+          <option>Mostrador</option>
+          <option>Factura</option>
+          <option>Remisión</option>
+        </select>
+        <input type="text" class="editable-input" placeholder="Factura" />
+      </div>
+
+      <!-- DETALLE: Producto seleccionado y Último agregado -->
+      <div class="detalle-container">
+        <div id="productoSeleccionado" class="ultimo-agregado"></div>
+        <div id="ultimoAgregado"      class="ultimo-agregado"></div>
+      </div>
+
+      <!-- TABLA PRINCIPAL -->
+      <div class="table-container">
+        <div class="tabla-scrollable">
+          <table>
+            <thead>
+              <tr>
+                <th>Referencia</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Ubicación</th>
+                <th>Código de barras</th>
+                <th>Code-128</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productosBody"></tbody>
+          </table>
+        </div>
+        <div class="bottom-section">
+          <button id="cargarInventarioBtn" class="btn-inventario">
+            <img class="icon" src="https://img.icons8.com/ios-filled/50/ffffff/upload.png" />
+            <span>Cargar inventario</span>
+          </button>
+          <button onclick="borrarHistorial()" style="background:#e74c3c;color:white;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;">
+            Borrar Historial
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let inventario = [];
+    let productosAgregados = [];
+
+    // Mostrar "Producto seleccionado" siempre (siempre que exista prod),
+    // y dejar la cantidad en blanco si no hay en inventario o es cero.
+    function mostrarProductoSeleccionado(prod) {
+      const div = document.getElementById("productoSeleccionado");
+      if (!prod) {
+        div.innerHTML = "";
+        return;
+      }
+      // Buscar en inventario
+      const itemInv = inventario.find(item => item.Referencia === prod.Referencia);
+      // Determinar cantidad a mostrar: si existe >0, se muestra, si no, cadena vacía
+      const cantidadInv = itemInv
+        ? parseInt(itemInv.Cantidad ?? itemInv.cantidad ?? 0, 10)
+        : 0;
+      const cantidadMostrar = cantidadInv > 0 ? cantidadInv : "";
+      // Renderizar
+      div.innerHTML = `
+        <h3>Producto seleccionado</h3>
+        <table class="ultimo-agregado-table">
+          <thead>
+            <tr>
+              <th>Referencia</th><th>Descripción</th><th>Ubicación</th><th>Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${prod.Referencia || "-"}</td>
+              <td>${prod.Descripción || prod.Descripcion || "-"}</td>
+              <td>${prod.Ubicación   || prod.Ubicacion   || "-"}</td>
+              <td>${cantidadMostrar}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    }
+
+    function mostrarUltimoAgregado(prod) {
+      const div = document.getElementById("ultimoAgregado");
+      if (!prod) {
+        div.innerHTML = "";
+        return;
+      }
+      div.innerHTML = `
+        <h3>Último producto agregado</h3>
+        <table class="ultimo-agregado-table">
+          <thead>
+            <tr>
+              <th>Referencia</th><th>Descripción</th><th>Ubicación</th><th>Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${prod.Referencia || "-"}</td>
+              <td>${prod.Descripción || prod.Descripcion || "-"}</td>
+              <td>${prod.Ubicación   || prod.Ubicacion   || "-"}</td>
+              <td>${prod.Cantidad || 1}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    }
+
+    // El resto del JavaScript permanece igual que antes
+    function limpiarTablaYProductos() {
+      document.getElementById("productosBody").innerHTML = "";
+      productosAgregados = [];
+      localStorage.setItem("productosAgregados", JSON.stringify(productosAgregados));
+      mostrarProductoSeleccionado(null);
+      mostrarUltimoAgregado(null);
+    }
+
+    function agregarProducto(prod, restaurando = false) {
+      const tbody = document.getElementById("productosBody");
+      const filas = Array.from(tbody.querySelectorAll("tr"));
+      const ref = prod.Referencia || "-";
+      const existe = filas.find(tr => tr.firstChild.textContent === ref);
+
+      if (!restaurando) mostrarProductoSeleccionado(prod);
+
+      if (existe) {
+        const tdCant = existe.children[3];
+        const nuevaCant = parseInt(tdCant.textContent, 10) + 1;
+        tdCant.textContent = nuevaCant;
+        mostrarUltimoAgregado({ ...prod, Cantidad: nuevaCant });
+        localStorage.setItem("productosAgregados", JSON.stringify(productosAgregados));
+        return;
+      }
+
+      const tr = document.createElement("tr");
+      const tdGen = txt => { const c = document.createElement("td"); c.textContent = txt || "-"; return c; };
+      tr.appendChild(tdGen(prod.Referencia));
+      tr.appendChild(tdGen(prod.Descripción || prod.Descripcion));
+      tr.appendChild(tdGen(prod.Precio));
+      tr.appendChild(tdGen("1"));
+      tr.appendChild(tdGen(prod.Ubicación || prod.Ubicacion));
+      tr.appendChild(tdGen(prod["Código de barras"] || prod["Codigo de barras"]));
+      tr.appendChild(tdGen(prod["Code-128"] || prod["code 128"]));
+
+      const tdAcc = document.createElement("td");
+      tdAcc.style.display = "flex"; tdAcc.style.justifyContent = "center"; tdAcc.style.gap = "8px";
+
+      const btnE = document.createElement("button");
+      btnE.className = "btn-accion"; btnE.style.background = "#3498db";
+      btnE.innerHTML = `<img class="icon" src="https://img.icons8.com/ios-filled/50/ffffff/edit.png"/>`;
+      btnE.addEventListener("click", () => editarCantidad(tr));
+
+      const btnX = document.createElement("button");
+      btnX.className = "btn-accion"; btnX.style.background = "#e74c3c";
+      btnX.innerHTML = `<img class="icon" src="https://img.icons8.com/ios-filled/50/ffffff/delete-forever.png"/>`;
+      btnX.addEventListener("click", () => {
+        tr.remove();
+        productosAgregados = productosAgregados.filter(p => p.Referencia !== prod.Referencia);
+        localStorage.setItem("productosAgregados", JSON.stringify(productosAgregados));
+      });
+
+      tdAcc.appendChild(btnE);
+      tdAcc.appendChild(btnX);
+      tr.appendChild(tdAcc);
+      tbody.appendChild(tr);
+
+      if (!restaurando) {
+        productosAgregados.push(prod);
+        localStorage.setItem("productosAgregados", JSON.stringify(productosAgregados));
+        mostrarUltimoAgregado({ ...prod, Cantidad: 1 });
+      }
+    }
+
+    function actualizarSugerencias(texto) {
+      const lista = document.getElementById("autocomplete-list");
+      lista.innerHTML = "";
+      if (!texto || texto.length < 2) return;
+      const busq = texto.toLowerCase();
+      inventario
+        .filter(p => {
+          const ref   = (p.Referencia         || "").toString().toLowerCase();
+          const code1 = (p["Código de barras"]|| "").toString().toLowerCase();
+          const code2 = (p["Code-128"]         || "").toString().toLowerCase();
+          return ref.includes(busq) || code1.includes(busq) || code2.includes(busq);
+        })
+        .slice(0, 6)
+        .forEach(prod => {
+          const item = document.createElement("div");
+          item.className = "autocomplete-item";
+          item.textContent = `${prod.Referencia} – ${prod.Descripción||prod.Descripcion||"-"}`;
+          item.addEventListener("click", () => {
+            document.getElementById("buscador").value = "";
+            lista.innerHTML = "";
+            agregarProducto(prod);
+          });
+          lista.appendChild(item);
+        });
+    }
+
+    function editarCantidad(tr) {
+      const td = tr.cells[3];
+      const actual = td.textContent;
+      td.innerHTML = "";
+      const inp = document.createElement("input");
+      inp.type = "number"; inp.value = actual; inp.style.width = "60px";
+      inp.addEventListener("blur", guardar);
+      inp.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); guardar(); }
+      });
+      function guardar() {
+        const v = parseInt(inp.value, 10);
+        td.textContent = (!isNaN(v) && v > 0) ? v : actual;
+        localStorage.setItem("productosAgregados", JSON.stringify(productosAgregados));
+      }
+      td.appendChild(inp);
+      inp.focus();
+      inp.select();
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      fetch("Barra.html")
+        .then(r => r.text())
+        .then(html => document.getElementById("sidebar-container").innerHTML = html);
+
+      const raw = localStorage.getItem("excelData");
+      if (raw) {
+        try { inventario = JSON.parse(raw); }
+        catch { console.error("Error al parsear excelData"); }
+      }
+
+      const saved = localStorage.getItem("productosAgregados");
+      if (saved) JSON.parse(saved).forEach(p => agregarProducto(p, true));
+
+      const buscador = document.getElementById("buscador");
+      buscador.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const texto = buscador.value.trim().toLowerCase();
+          const filtro = texto.replace(/[^0-9]/g, "");
+          const prod = inventario.find(p => {
+            const refRaw   = (p.Referencia           || "").toString().toLowerCase();
+            const code1    = (p["Código de barras"]  || p["Codigo de barras"]|| "").toString().toLowerCase();
+            const code2    = (p["Code-128"]          || p["code 128"]       || "").toString().toLowerCase();
+            const refNorm   = refRaw.replace(/[^0-9]/g, "");
+            const code1Norm = code1.replace(/[^0-9]/g, "");
+            const code2Norm = code2.replace(/[^0-9]/g, "");
+            return refNorm === filtro || code1Norm === filtro || code2Norm === filtro;
+          });
+          if (prod) {
+            agregarProducto(prod);
+            buscador.value = "";
+          } else {
+            // si no está en inventario, igual mostrar seleccionado (cantidad en blanco)
+            const fake = { ...prod, Cantidad: "" } || { Referencia: filtro, Descripción: "", Ubicación: "", Cantidad: "" };
+            mostrarProductoSeleccionado({ Referencia: filtro, Descripción: "", Ubicación: "", Cantidad: "" });
+          }
+        }
+      });
+      buscador.addEventListener("input", () => actualizarSugerencias(buscador.value));
+
+      document.getElementById("cargarInventarioBtn").addEventListener("click", () => {
+        document.querySelectorAll("#productosBody tr").forEach(tr => {
+          const ref      = tr.children[0].textContent;
+          const cantidad = parseInt(tr.children[3].textContent, 10);
+          const itemInv  = inventario.find(p => (p.Referencia||"").toString() === ref);
+          if (itemInv) {
+            itemInv.Cantidad = (parseInt(itemInv.Cantidad||0,10) + cantidad);
+          } else {
+            const prod = productosAgregados.find(p => p.Referencia === ref);
+            if (prod) inventario.push({ ...prod, Cantidad: cantidad });
+          }
+        });
+        localStorage.setItem("excelData", JSON.stringify(inventario));
+        limpiarTablaYProductos();
+        alert("Inventario actualizado exitosamente.");
+      });
+    });
+
+    function borrarHistorial() {
+      if (confirm("¿Estás seguro de borrar todo el historial?")) {
+        localStorage.removeItem("historialFacturas");
+        alert("Historial borrado exitosamente.");
+      }
+    }
+  </script>
+</body>
+</html>

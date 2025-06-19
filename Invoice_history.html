@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Historial de Facturas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 40px 100px;
+      margin: 0;
+    }
+
+    .tabla-historial {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      color: #333;
+    }
+
+    thead {
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    tbody tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      margin: 0;
+      color: #333;
+      font-size: 20px;
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .btn-descargar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background-color: white;
+      color: #333;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .btn-descargar:hover {
+      background-color: #f2f2f2;
+    }
+
+    .btn-descargar img {
+      width: 16px;
+      height: 16px;
+      filter: brightness(0); /* fuerza ícono oscuro */
+    }
+
+    .btn-borrar {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-borrar:hover {
+      filter: brightness(1.2);
+    }
+
+    .mensaje-vacio {
+      padding: 20px;
+      text-align: center;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h2>Historial de Facturas Subidas</h2>
+        <button class="btn-descargar" onclick="descargarHistorialExcel()">
+          <img src="https://img.icons8.com/ios-glyphs/30/333333/download--v1.png" alt="icono descarga">
+          Descargar Excel
+        </button>
+      </div>
+    
+      <div class="tabla-historial">
+        <table>
+          <thead>
+            <tr>
+                <th>Factura de Venta</th>
+                <th>Empresa 1</th>
+                <th>Empresa 2</th>
+                <th>Fecha de Expedición</th>
+                <th>Fecha de Vencimiento</th>
+                <th>Neto a Pagar</th>
+                <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tablaHistorial">
+            <tr><td colspan="4" class="mensaje-vacio">Cargando historial...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+  <script>
+    let historial = JSON.parse(localStorage.getItem("historialFacturas")) || [];
+    const tabla = document.getElementById("tablaHistorial");
+
+    function renderHistorial() {
+      tabla.innerHTML = "";
+
+      if (historial.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="7" class="mensaje-vacio">No hay facturas registradas.</td>`;
+        tabla.appendChild(tr);
+        return;
+      }
+
+      historial.forEach((f, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${f.numero || ''}</td>
+          <td>${f.empresa1 || ''}</td>
+          <td>${f.empresa2 || ''}</td>
+          <td>${f.fechaExpedicion || ''}</td>
+          <td>${f.fechaVencimiento || ''}</td>
+          <td>${f.neto || ''}</td>
+          <td><button class="btn-borrar" onclick="borrarFactura(${index})">🗑️</button></td>
+        `;
+        tabla.appendChild(tr);
+      });
+    }
+
+    function borrarFactura(index) {
+      if (confirm("¿Seguro que deseas eliminar esta factura del historial?")) {
+        historial.splice(index, 1);
+        localStorage.setItem("historialFacturas", JSON.stringify(historial));
+        renderHistorial();
+      }
+    }
+
+    function descargarHistorialExcel() {
+      if (historial.length === 0) {
+        alert("No hay datos para exportar.");
+        return;
+      }
+
+      const ws = XLSX.utils.json_to_sheet(historial);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Historial");
+      XLSX.writeFile(wb, "historial_facturas.xlsx");
+    }
+
+    renderHistorial();
+  </script>
+
+</body>
+</html>

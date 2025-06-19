@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema con barra lateral</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #1e1e1e;
+      overflow: hidden;
+    }
+
+    .layout {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .sidebar {
+      width: 260px;
+      background-color: #ffffff;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 2px 0 4px rgba(0,0,0,0.04);
+    }
+
+    .menu-item {
+      cursor: pointer;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      transition: background-color 0.2s, color 0.2s;
+      color: #333;
+    }
+
+    .menu-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .menu-item img {
+      width: 20px;
+      height: 20px;
+      filter: none;
+    }
+
+    .content {
+      flex: 1;
+      height: 100%;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background-color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Barra lateral -->
+    <div class="sidebar">
+      <div class="menu-item" onclick="cargarPagina('Inventory.html')">
+        <img src="https://img.icons8.com/?size=100&id=f7Dk46mgoJZf&format=png&color=000000" alt="Inventario">
+        <span>Inventario</span>
+      </div>
+
+      <div class="menu-item" onclick="cargarPagina('Lista_precios.html')">
+        <img src="https://img.icons8.com/?size=100&id=f7Dk46mgoJZf&format=png&color=000000" alt="Inventario">
+        <span>Lista de precios</span>
+      </div>
+
+      <div class="menu-item" onclick="cargarPagina('XML_Reader.html')">
+        <img src="https://img.icons8.com/?size=100&id=fpjtg2eG4mKf&format=png&color=000000" alt="Lector Factura">
+        <span>Lector Factura</span>
+      </div>
+
+      <div class="menu-item" onclick="cargarPagina('Invoice_history.html')">
+        <img src="https://img.icons8.com/?size=100&id=24874&format=png&color=000000" alt="Historial de Facturas">
+        <span>Historial de Facturas</span>
+      </div>
+
+      <div class="menu-item" onclick="cargarPagina('xd3.html')">
+        <img src="https://img.icons8.com/?size=100&id=x158grZGmi75&format=png&color=000000" alt="Cargar o Descargar">
+        <span>Cargar o Descargar</span>
+      </div>
+
+      <div class="menu-item" onclick="cargarPagina('Download_Inventory.html')">
+        <img src="https://img.icons8.com/?size=100&id=x158grZGmi75&format=png&color=000000" alt="Descargar">
+        <span>Descargar</span>
+      </div>
+
+      <div class="menu-item" onclick="cargarPagina('Client.html')">
+        <img src="https://img.icons8.com/?size=100&id=69&format=png&color=000000" alt="Clientes">
+        <span>Clientes</span>
+      </div>
+
+      <div class="menu-item" onclick="cargarPagina('xd.html')">
+        <img src="https://img.icons8.com/?size=100&id=Nrqb8Z7NYpFv&format=png&color=000000" alt="Cotizar">
+        <span>Cotizador</span>
+      </div>
+
+      <div class="menu-item" onclick="cargarPagina('History_Inventory.html')">
+        <img src="https://img.icons8.com/?size=100&id=Nrqb8Z7NYpFv&format=png&color=000000" alt="Cotizar">
+        <span>Historial Inventario</span>
+      </div>
+
+    </div>
+
+    <!-- Contenido -->
+    <div class="content">
+      <iframe id="frameContenido" src=""></iframe>
+    </div>
+  </div>
+
+  <script>
+    function cargarPagina(url) {
+      document.getElementById("frameContenido").src = url;
+    }
+  </script>
+</body>
+</html>

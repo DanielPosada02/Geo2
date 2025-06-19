@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Factura</title>
+ <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px 100px;
+      background-color: #f9f9f9;
+      max-width: 0 auto;
+      margin: 0 auto;
+    }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar, #buscador, select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .info-input, .editable-input, .info-select {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      background-color: white;
+      flex: 1;
+    }
+
+    .table-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .tabla-scrollable {
+      height: 65vh;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      color: #333;
+    }
+
+    thead {
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    thead th {
+      padding: 14px 16px;
+      text-align: left;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+      background-color: #fff;
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    tbody td:first-child {
+      font-weight: 500;
+      color: #000;
+    }
+
+    thead th:first-child {
+      border-top-left-radius: 12px;
+    }
+
+    thead th:last-child {
+      border-top-right-radius: 12px;
+    }
+    
+    .bottom-section {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 24px;
+      border: 1px solid #ffffff;
+      border-radius: 10px;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .btn-inventario {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: filter 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-inventario:hover {
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+      filter: brightness(1.2);
+    }
+
+    .btn-inventario img.icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .btn-accion {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: filter 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-accion:hover {
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+      filter: brightness(1.2);
+    }
+
+    .btn-accion img.icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .dropdown-container {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-button {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 18px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s ease;
+    }
+
+    .dropdown-button:hover {
+      background-color: #f0f0f0;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 110%;
+      left: 0;
+      background-color: #2e2e2e;
+      border-radius: 8px;
+      padding: 8px 0;
+      min-width: 180px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 100;
+    }
+
+    .dropdown-menu::before {
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid #2e2e2e;
+    }
+
+    .dropdown-item {
+      padding: 10px 16px;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .dropdown-item:hover {
+      background-color: #444;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+      <div class="filters">
+        <input type="text" id="buscador" placeholder="Buscar producto (referencia o código de barras)" style="flex: 2;" autofocus />
+
+        <select class="info-select">
+          <option disabled selected>Orden</option>
+          <option>Garantía</option>
+          <option>Reparación</option>
+          <option>Venta rápida</option>
+        </select>
+
+        <input type="text" placeholder="Orden de trabajo" class="editable-input" />
+
+        <select class="info-select">
+          <option disabled selected>Venta</option>
+          <option>Mostrador</option>
+          <option>Factura</option>
+          <option>Remisión</option>
+        </select>
+
+        <input type="text" placeholder="Factura" class="editable-input" />
+      </div>
+
+      <div class="table-container">
+        <div class="tabla-scrollable">
+          <table>
+            <thead>
+              <tr>
+                <th>Referencia</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Ubicación</th> <!-- AGREGAS ESTA -->
+                <th>Código de barras</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productosBody">
+              <!-- Productos agregados dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bottom-section">
+          <button id="cargarInventarioBtn" class="btn-inventario">
+            <img class="icon" src="https://img.icons8.com/ios-filled/50/ffffff/upload.png" />
+            <span>Cargar inventario</span>
+          </button>
+          <button onclick="borrarHistorial()" style="background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px;">
+            Borrar Historial
+          </button>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    fetch("Barra.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("sidebar-container").innerHTML = html;
+      });
+
+    let inventario = [];
+    let productosAgregados = [];
+
+    function guardarProductosEnLocalStorage() {
+      localStorage.setItem("productosAgregados", JSON.stringify(productosAgregados));
+    }
+
+    function renderProductosGuardados() {
+      const guardados = localStorage.getItem("productosAgregados");
+      if (guardados) {
+        try {
+          productosAgregados = JSON.parse(guardados);
+          productosAgregados.forEach(p => agregarProducto(p, true));
+        } catch (e) {
+          console.error("Error al cargar productos agregados.");
+        }
+      }
+    }
+
+    function buscarProducto(texto) {
+      const limpio = texto.toLowerCase().trim();
+      return inventario.find(p => {
+        const ref = (p.Referencia || "").toLowerCase().trim();
+        const codigo = (p["Código de barras"] || "").toLowerCase().trim();
+        const code128 = (p["code-128"] || "").toLowerCase().trim();
+        return ref.includes(limpio) || codigo.includes(limpio) || code128.includes(limpio);
+      });
+    }
+
+    function agregarProducto(prod, restaurando = false) {
+      const tbody = document.getElementById("productosBody");
+      const filas = [...tbody.querySelectorAll("tr")];
+      const referencia = (prod.Referencia || "-").trim();
+      const precio = parseFloat(prod.Precio) || 0;
+      const descripcion = prod.Descripción || prod.Descripcion || "-";
+      const ubicacion = prod.Ubicación || prod.Ubicacion || "-";
+      const codigo = prod["Codigo de barras"] || prod["Código de barras"] || "-";
+
+      let filaExistente = filas.find(tr => tr.firstChild.textContent.trim().toLowerCase() === referencia.toLowerCase());
+
+      if (filaExistente) {
+        const cantidadCell = filaExistente.children[3];
+        let cantidadActual = parseInt(cantidadCell.textContent);
+        cantidadActual += 1;
+        cantidadCell.textContent = cantidadActual;
+        return;
+      }
+
+      let cantidad = 1;
+
+      const tr = document.createElement("tr");
+
+      const crearCelda = (contenido) => {
+        const td = document.createElement("td");
+        td.textContent = contenido;
+        return td;
+      };
+
+      tr.appendChild(crearCelda(referencia));
+      tr.appendChild(crearCelda(descripcion));
+      tr.appendChild(crearCelda(precio.toLocaleString("es-CO", { style: "currency", currency: "COP" })));
+
+      const tdCantidad = document.createElement("td");
+      tdCantidad.textContent = cantidad;
+      tr.appendChild(tdCantidad);
+
+      tr.appendChild(crearCelda(ubicacion));
+
+      const tdCodigoBarras = document.createElement("td");
+      tdCodigoBarras.textContent = codigo || "-";
+      tr.appendChild(tdCodigoBarras);
+
+      const tdAcciones = document.createElement("td");
+      tdAcciones.style.display = "flex";
+      tdAcciones.style.justifyContent = "center";
+      tdAcciones.style.gap = "8px";
+
+      const btnEditar = document.createElement("button");
+      btnEditar.className = "btn-accion";
+      btnEditar.style.backgroundColor = "#3498db";
+      btnEditar.innerHTML = `<img class="icon" src="https://img.icons8.com/ios-filled/50/ffffff/edit.png" alt="Editar"/>`;
+      btnEditar.addEventListener("click", () => editarCantidad(tr));
+
+      const btnEliminar = document.createElement("button");
+      btnEliminar.className = "btn-accion";
+      btnEliminar.style.backgroundColor = "#e74c3c";
+      btnEliminar.innerHTML = `<img class="icon" src="https://img.icons8.com/ios-filled/50/ffffff/delete-forever.png" alt="Eliminar"/> <span>Eliminar</span>`;
+      btnEliminar.addEventListener("click", () => {
+        tr.remove();
+        productosAgregados = productosAgregados.filter(p => p.Referencia !== referencia);
+        guardarProductosEnLocalStorage();
+      });
+
+      tdAcciones.appendChild(btnEditar);
+      tdAcciones.appendChild(btnEliminar);
+      tr.appendChild(tdAcciones);
+
+      tbody.insertBefore(tr, tbody.firstChild);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const raw = localStorage.getItem("excelData");
+      if (raw) {
+        try {
+          let data = JSON.parse(raw);
+
+          // Normalizamos claves del Excel
+          inventario = data.map(p => {
+            return {
+              Referencia: p.Referencia || p.referencia || "",
+              Descripción: p.Descripción || p.Descripcion || p.descripcion || "",
+              Precio: p.Precio || p.precio || 0,
+              Ubicación: p.Ubicación || p.Ubicacion || p.ubicacion || "",
+              "Código de barras": p["Código de barras"] || p["Codigo de barras"] || p["codigo barras"] || p["codigo"] || "",
+              "code-128": p["code-128"] || ""
+            };
+          });
+
+          console.log("Inventario cargado:", inventario);
+        } catch (e) {
+          alert("Error al leer el inventario.");
+        }
+      } else {
+        console.warn("No se ha cargado ningún archivo de Excel.");
+      }
+
+      renderProductosGuardados();
+
+      const btnCargarInventario = document.getElementById("cargarInventarioBtn");
+      if (btnCargarInventario) {
+        btnCargarInventario.addEventListener("click", cargarInventarioDesdeExcel);
+      }
+
+      const buscadorInput = document.getElementById("buscador");
+      if (buscadorInput) {
+        buscadorInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            const texto = this.value.trim().toLowerCase();
+            if (texto.length === 0) {
+              alert("El campo está vacío.");
+              this.value = "";
+              return;
+            }
+
+            const producto = buscarProducto(texto);
+            console.log("Buscando:", texto);
+            console.log("Resultado:", producto);
+
+            if (producto) {
+              agregarProducto(producto);
+              productosAgregados.push(producto);
+              guardarProductosEnLocalStorage();
+            } else {
+              alert("Producto no encontrado.");
+            }
+
+            this.value = "";
+          }
+        });
+      }
+    });
+  </script>
+  
+   
+</body>
+</html>

@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vista previa de Cotización (Responsive)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f0f0f0;
+      overflow-x: hidden;
+    }
+
+    /* CONTENEDOR PRINCIPAL: tres columnas en fila o apilado según ancho */
+    .wrapper {
+      display: flex;
+      flex-direction: row; /* en pantallas grandes, fila */
+      height: 100vh;
+      width: 100vw;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    /* COLUMNA IZQUIERDA: FORMULARIO APILADO */
+    .columna-izquierda {
+      flex: 0 0 300px; /* ancho fijo de 300px en pantallas grandes */
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+      min-width: 250px; /* no se encoja menos de 250px */
+    }
+
+    .columna-izquierda .section {
+      margin-bottom: 20px;
+    }
+
+    .columna-izquierda h2 {
+      font-size: 15px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* Cada input/textarea apilado, 100% ancho */
+    .columna-izquierda input[type='text'],
+    .columna-izquierda input[type='email'],
+    .columna-izquierda textarea,
+    .columna-izquierda select {
+      width: 100%;
+      height: 32px;
+      padding: 6px 10px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      background-color: #fff;
+      color: #333;
+      outline: none;
+      margin-bottom: 12px; /* espacio entre campos */
+    }
+    .columna-izquierda textarea {
+      height: 80px;
+      resize: none;
+    }
+
+    /* Botones en fila o apilado */
+    .botones-container {
+      display: flex;
+      flex-direction: column; /* vertical por defecto */
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .botones-container button {
+      width: 100%;
+      height: 36px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .btn-whatsapp {
+      background-color: #28a745;
+    }
+    .btn-correo {
+      background-color: #2164d9;
+    }
+    .btn-actualizar {
+      background-color: #444;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    /* COLUMNA CENTRAL: carga xd4.html */
+    .columna-centro {
+      flex: 1;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .columna-centro iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+    }
+
+    /* COLUMNA DERECHA: VISTA PREVIA */
+    .columna-derecha {
+      flex: 1; /* ocupa espacio restante */
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+      color: #000;
+    }
+
+    /* ESTILOS VISTA PREVIA */
+    .encabezado {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .logo {
+      width: 80px;
+      height: auto;
+      margin-right: 20px;
+    }
+    .info-central,
+    .info-derecha,
+    .dato-linea,
+    .bloque,
+    h2 {
+      font-size: 12px;
+    }
+    .info-central {
+      flex: 1;
+      text-align: left;
+      font-weight: bold;
+    }
+    .info-derecha {
+      text-align: right;
+    }
+    .info-derecha span {
+      color: #000;
+      font-weight: bold;
+    }
+    .separador {
+      border-top: 1px dashed black;
+      margin: 6px 0;
+    }
+    h2 {
+      text-align: center;
+      margin: 6px 0;
+      font-weight: bold;
+    }
+    .bloque {
+      text-align: center;
+      font-weight: bold;
+      margin: 6px 0;
+    }
+    .dato-linea {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+    }
+    .dato-linea .etiqueta {
+      font-weight: bold;
+    }
+    .dato-linea span {
+      color: #000;
+      font-weight: bold;
+    }
+    .tabla-repuestos {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .tabla-repuestos th {
+      background-color: #fff;
+      color: #000000;
+      font-weight: bold;
+      text-align: left;
+      padding: 6px 10px;
+      /*border-bottom: 1px solid #ccc;*/
+    }
+    .tabla-repuestos td {
+      padding: 6px 10px;
+      /*border-bottom: 1px solid #eee;*/
+      color: #000;
+    }
+    .tabla-repuestos td.valor {
+      color: #000000;
+      text-align: right;
+      font-weight: bold;
+    }
+
+    /* CONTENEDOR RELATIVO para la imagen + marcadores */
+    .contenedor-imagen-prev {
+      position: relative;
+      margin: 20px auto 0 auto;
+      width: auto;       /* no forzar reducción */
+      max-width: none;   /* quitar cualquier max-width */
+    }
+    .contenedor-imagen-prev img {
+      display: block;
+      width: auto;       /* usar tamaño natural (no reducido) */
+      height: auto;
+      max-width: 100%;   /* si sobrepasa el ancho de pantalla, se reducirá proporcionalmente */
+      border: 1px solid #ccc;
+      border-radius: 7px;
+    }
+    /* Marcadores rojos sobre la imagen */
+    .marcador-prev {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgb(255, 0, 0);
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      pointer-events: none; /* solo visual */
+    }
+
+    /* ESTILO PARA JUSTIFICAR TEXTO DE OBSERVACIONES */
+    #observacionesOut {
+      white-space: normal;       /* permite que el texto fluya y haga wrapping automático */
+      margin-bottom: 10px;
+      color: #000;
+      text-align: justify;       /* justifica todas las líneas */
+      text-align-last: justify;  /* justifica también la última línea */
+    }
+
+    /* Tabla de Totales */
+    .tabla-totales {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .tabla-totales td {
+      padding: 4px 10px;
+    }
+    .tabla-totales td.label {
+      text-align: left;
+      font-weight: bold;
+    }
+    .tabla-totales td.valor {
+      text-align: right;
+      color: #000000;
+      font-weight: bold;
+    }
+    .tabla-totales tr.total-row td {
+      background-color: #ccc;
+      color: #000;
+      font-weight: bold;
+    }
+
+    /* ESTILOS INFO ADICIONAL */
+    .info-adicional {
+      margin-top: 20px;
+      border-top: 1px dashed black;
+      padding-top: 10px;
+    }
+    .info-adicional .bloque {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    .info-adicional .fila {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+    }
+    .info-adicional .fila .etiqueta {
+      font-weight: bold;
+    }
+    .info-adicional .fila .valor {
+      color: #000000;
+      font-weight: bold;
+    }
+    .info-adicional .nota {
+      margin-top: 10px;
+      font-size: 10px;
+      font-style: italic;
+    }
+
+    /* RESPONSIVE: en pantallas menores a 1000px, apilamos columnas */
+    @media (max-width: 1000px) {
+      .wrapper {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+      }
+      .columna-izquierda,
+      .columna-centro,
+      .columna-derecha {
+        flex: none;
+        width: 100%;
+        margin-bottom: 10px;
+        height: auto;
+        min-width: 0;
+      }
+      .columna-izquierda {
+        padding: 15px;
+      }
+      .columna-derecha {
+        padding: 20px;
+      }
+      /* Opcional: mostrar botones en fila cuando haya espacio */
+      .botones-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .botones-container button {
+        flex: 1 1 calc(50% - 8px);
+      }
+      /* Ajustar contenedor de imagen en móvil */
+      .contenedor-imagen-prev {
+        width: 100%;
+      }
+      .contenedor-imagen-prev img {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- ========== COLUMNA IZQUIERDA: FORMULARIO APILADO ========== -->
+    <div class="columna-izquierda" id="colIzquierda">
+      <!-- Sección: Datos de la orden -->
+      <div class="section">
+        <h2>Datos de la orden</h2>
+        <input type="text" id="tipoOrden" placeholder="Tipo de orden" />
+        <input type="text" id="consecutivo" placeholder="Consecutivo" />
+      </div>
+      <!-- Sección: Datos del cliente -->
+      <div class="section">
+        <h2>Datos del cliente</h2>
+        <input type="text" id="nombreCliente" placeholder="Nombre" />
+        <input type="email" id="correoCliente" placeholder="Correo" />
+        <input type="text" id="documentoCliente" placeholder="Documento/Nit" />
+        <input type="text" id="telefonoCliente" placeholder="Teléfono" />
+      </div>
+      <!-- Sección: Observaciones -->
+      <div class="section">
+        <h2>Observaciones</h2>
+        <textarea id="observaciones" placeholder="Escribe aquí tus observaciones..."></textarea>
+      </div>
+      <!-- Sección: Valores (Abono y Mantenimiento) -->
+      <div class="section">
+        <h2>Valores</h2>
+        <input type="text" id="abono" placeholder="Abono" />
+        <input type="text" id="mantenimiento" placeholder="Mantenimiento" />
+      </div>
+      <!-- Sección: Selección de técnico -->
+      <div class="section">
+        <select id="tecnicoSelect">
+          <option value="">Seleccionar técnico</option>
+          <option value="TÉCNICO 1 – HERNÁN RAMÍREZ">Técnico 1</option>
+          <option value="TÉCNICO 2 – CARLOS PÉREZ">Técnico 2</option>
+          <option value="TÉCNICO 3 – MARÍA GARCÍA">Técnico 3</option>
+        </select>
+      </div>
+      <!-- Sección: Botones -->
+      <div class="section botones-container">
+        <button class="btn-whatsapp" onclick="actualizarVista()">
+          Enviar por WhatsApp
+        </button>
+        <button class="btn-correo" onclick="actualizarVista()">
+          Enviar por Correo
+        </button>
+        <button class="btn-actualizar" onclick="actualizarVista()">
+          Actualizar Vista
+        </button>
+        <button class="btn-actualizar" onclick="imprimirVista()">
+          Imprimir PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- ========== COLUMNA CENTRAL: carga Cotizador.html ========== -->
+    <div class="columna-centro">
+      <iframe src="Cotizador.html"></iframe>
+    </div>
+
+    <!-- ========== COLUMNA DERECHA: VISTA PREVIA ========== -->
+    <div class="columna-derecha" id="cotizacion">
+      <!-- Sección: LOGO + INFO EMPRESA + FECHA/Ciudad/etc -->
+      <div class="encabezado">
+        <img src="geo.jpg" alt="Logo GEO" class="logo" />
+        <div class="info-central">
+          GEO SOLUTIONS S.A.S<br />
+          AUTOPISTA SUR 55-57 BOGOTÁ<br />
+          NIT: 900208214-9
+        </div>
+        <div class="info-derecha">
+          <strong>FECHA COTIZACIÓN:</strong>
+          <span id="fechaCotizacion">DD/MM/AAAA</span><br /><br />
+          <strong>TELÉFONO:</strong> <span>3115333474</span><br /><br />
+          <strong>CIUDAD:</strong> <span>BOGOTÁ</span>
+        </div>
+      </div>
+
+      <div class="separador"></div>
+      <h2>FORMATO PARA COTIZACIÓN DE REPARACIÓN DE HERRAMIENTA ELÉCTRICA</h2>
+      <div class="separador"></div>
+
+      <!-- DATOS DE LA ORDEN -->
+      <div class="bloque">DATOS DE LA ORDEN</div>
+      <div class="separador"></div>
+      <div class="dato-linea">
+        <div><span class="etiqueta">DOCUMENTO:</span> <span id="tipoOrdenOut">---</span></div>
+        <div>
+          <span class="etiqueta">CONSECUTIVO:</span>
+          <span id="consecutivoOut">---</span>
+        </div>
+      </div>
+
+      <div class="separador"></div>
+      <!-- DATOS DEL CLIENTE -->
+      <div class="bloque">DATOS DEL CLIENTE</div>
+      <div class="separador"></div>
+      <div class="dato-linea">
+        <div><span class="etiqueta">NOMBRE:</span> <span id="nombreOut">---</span></div>
+        <div><span class="etiqueta">TELÉFONO:</span> <span id="telefonoOut">---</span></div>
+      </div>
+      <div class="dato-linea">
+        <div><span class="etiqueta">DOCUMENTO:</span> <span id="documentoOut">---</span></div>
+        <div><span class="etiqueta">CORREO:</span> <span id="correoOut">---</span></div>
+      </div>
+
+      <div class="separador"></div>
+      <!-- REPUESTOS -->
+      <div class="bloque">REPUESTOS</div>
+      <div class="separador"></div>
+
+      <!-- EQUIPO: aquí se mostrará el modelo de la máquina -->
+      <div class="dato-linea">
+        <div>
+          <span class="etiqueta">EQUIPO:</span>
+          <span id="equipoOut">---</span>
+        </div>
+      </div>
+      <div class="separador"></div>
+
+      <!-- Aquí irá la tabla que se genere al presionar "Actualizar Vista" -->
+      <div id="tablaRepuestosContainer"></div>
+
+      <!-- CONTENEDOR RELATIVO para la imagen + marcadores (debajo de la tabla) -->
+      <div class="contenedor-imagen-prev" id="contenedorImagenPrev">
+        <img id="imagenModeloPrev" src="" alt="Imagen modelo" />
+        <!-- Sobre esta misma capa .contenedor-imagen-prev dibujaremos los marcadores -->
+      </div>
+
+      <div class="separador"></div>
+      <!-- OBSERVACIONES -->
+      <div class="bloque">OBSERVACIONES</div>
+      <div class="separador"></div>
+
+      <!-- Aquí se mostrará el texto justificado -->
+      <div id="observacionesOut">
+        ---
+      </div>
+
+      <div class="separador"></div>
+      <!-- TOTAL COTIZACIÓN -->
+      <div class="bloque">TOTAL COTIZACIÓN</div>
+      <div class="separador"></div>
+      <!-- Aquí se mostrará la tabla con ABONO, MANTENIMIENTO, REPUESTOS, SUBTOTAL, IVA y TOTAL -->
+      <div id="resumenTotalesContainer"></div>
+
+      <!-- INFORMACIÓN ADICIONAL -->
+      <div class="info-adicional">
+        <div class="bloque">INFORMACIÓN ADICIONAL</div>
+        <div class="separador"></div>
+        <div class="fila">
+          <div class="etiqueta">TÉCNICO QUE REALIZÓ LA REVISIÓN :</div>
+          <div class="valor" id="tecnicoRevision">---</div>
+        </div>
+        <div class="fila">
+          <div class="etiqueta">SUPERVISIÓN DE LA COTIZACIÓN :</div>
+          <div class="valor">ING. EDILBERTO GÓMEZ MONCADA</div>
+        </div>
+        <div class="fila">
+          <div class="etiqueta">COTIZACIÓN REALIZADA POR :</div>
+          <div class="valor">ING. MAGNOLIA QUINTERO REYES</div>
+        </div>
+        <div class="nota">* Cotización válida por 15 días</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------------------------------------------------
+    // Colocamos la fecha de hoy en la vista previa
+    // ---------------------------------------------------
+    const hoy = new Date();
+    const fechaFormateada = hoy.toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    document.getElementById('fechaCotizacion').textContent = fechaFormateada;
+
+    // ---------------------------------------------------
+    // Función que vuelca datos del formulario a la vista previa
+    // ---------------------------------------------------
+    function actualizarVista() {
+      // 1) Rellenamos los datos escritos a mano
+      document.getElementById('tipoOrdenOut').textContent =
+        document.getElementById('tipoOrden').value || '---';
+      document.getElementById('consecutivoOut').textContent =
+        document.getElementById('consecutivo').value || '---';
+      document.getElementById('nombreOut').textContent =
+        document.getElementById('nombreCliente').value || '---';
+      document.getElementById('telefonoOut').textContent =
+        document.getElementById('telefonoCliente').value || '---';
+      document.getElementById('documentoOut').textContent =
+        document.getElementById('documentoCliente').value || '---';
+      document.getElementById('correoOut').textContent =
+        document.getElementById('correoCliente').value || '---';
+
+      // 2) Cargamos el modelo y su imagen
+      const modeloGuardado = localStorage.getItem('modeloMaquina') || '';
+      const imgTag = document.getElementById('imagenModeloPrev');
+
+      if (modeloGuardado) {
+        document.getElementById('equipoOut').textContent = modeloGuardado;
+
+        // Mapa URL según modelo
+        const urlImagen = {
+          D28402:
+            'https://www.toolservicenet.com/i/DEWALT/GLOBALBOM/QU/D28402/1/Exploded_Diagram/EN/EA022834.gif',
+          DCF887B:
+            'https://www.toolservicenet.com/i/DEWALT/GLOBALBOM/QU/DCF887B/1/Exploded_Diagram/EN/EA025183.gif',
+          DW505:
+            'https://www.toolservicenet.com/i/DEWALT/GLOBALBOM/B3/DW505/10/Exploded_Diagram/EN/DW505-AR_TY_10.gif',
+        }[modeloGuardado] || '';
+
+        if (urlImagen) {
+          // Reasignamos la misma URL para forzar que se vuelva a cargar la imagen
+          imgTag.src = urlImagen;
+          // Cuando termine de cargar, dibujamos marcadores
+          imgTag.onload = () => {
+            dibujarMarcadores();
+          };
+        } else {
+          imgTag.removeAttribute('src');
+        }
+      } else {
+        document.getElementById('equipoOut').textContent = '---';
+        imgTag.removeAttribute('src');
+      }
+
+      // 3) Construimos la tabla de repuestos leyendo localStorage
+      const contenedorTabla = document.getElementById('tablaRepuestosContainer');
+      contenedorTabla.innerHTML = '';
+
+      let repuestosTotal = 0;
+      const repuestosJSON = localStorage.getItem('repuestosSeleccionados');
+      if (repuestosJSON) {
+        const repuestosArray = JSON.parse(repuestosJSON);
+        if (repuestosArray.length) {
+          const tabla = document.createElement('table');
+          tabla.className = 'tabla-repuestos';
+          tabla.innerHTML = `
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>REFERENCIA</th>
+                <th>DESCRIPCIÓN DE LOS REPUESTOS</th>
+                <th>VALOR ANTES DE IVA</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${repuestosArray
+                .map((item) => {
+                  // ================================
+                  // 1) Interpretar correctamente “item.precio” en formato de-DE:
+                  //    - Puntos como separador de miles  (los eliminamos)
+                  //    - Comas como decimales          (las reemplazamos por punto)
+                  // 2) Luego parseFloat() para obtener 15371 (en lugar de 15.37)
+                  // ================================
+                  let precioStr = item.precio.toString();
+                  // Ejemplo: “15.371”  → quitamos “.”  → “15371”
+                  //          “1.234,56” → quitamos “.” → “1234,56” → cambiamos coma por punto → “1234.56”
+                  precioStr = precioStr.replace(/\./g, '').replace(',', '.');
+                  let precioNum = parseFloat(precioStr);
+                  if (isNaN(precioNum)) precioNum = 0;
+
+                  // Ahora sumamos repuestosTotal como un número “puro” (15371)
+                  repuestosTotal += precioNum;
+
+                  // ================================
+                  // 3) Formatear “precioNum” para mostrar en la tabla con 2 decimales y separador de miles “de-DE”
+                  //    Si precioNum = 15371 → toLocaleString('de-DE', { minimumFractionDigits:2 }) → “15.371,00”
+                  // ================================
+                  const precioForm = precioNum.toLocaleString('de-DE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  });
+
+                  return `
+                    <tr>
+                      <td>${item.numero}</td>
+                      <td>${item.referencia}</td>
+                      <td>${item.descripcion}</td>
+                      <td class="valor">$ ${precioForm}</td>
+                    </tr>
+                  `;
+                })
+                .join('')}
+            </tbody>
+          `;
+          contenedorTabla.appendChild(tabla);
+        }
+      }
+
+      // 4) Si la imagen ya estuviera cargada ANTES de hacer clic en "Actualizar Vista",
+      //    la función onload no se volverá a disparar. En ese caso, llamamos a dibujarMarcadores()
+      //    directamente aquí.
+      const imgYaListo = imgTag.complete && imgTag.src;
+      if (imgYaListo) {
+        dibujarMarcadores();
+      }
+
+      // 5) Mostrar en la vista previa el contenido del textarea, convirtiendo saltos de línea a <br>
+      const textoRaw = document.getElementById('observaciones').value || '';
+      const htmlConBr = textoRaw.replace(/\n/g, '<br>');
+      document.getElementById('observacionesOut').innerHTML = htmlConBr || '---';
+
+      // 6) Tomamos Abono y Mantenimiento (validamos y convertimos a número)
+      const abonoRaw = document.getElementById('abono').value || '0';
+      let abonoNum = parseFloat(abonoRaw.replace(/[^\d\-\.]/g, '').replace(',', '.'));
+      if (isNaN(abonoNum)) abonoNum = 0;
+      const mantRaw = document.getElementById('mantenimiento').value || '0';
+      let mantNum = parseFloat(mantRaw.replace(/[^\d\-\.]/g, '').replace(',', '.'));
+      if (isNaN(mantNum)) mantNum = 0;
+
+      // 7) Calculamos subtotal, IVA y total
+      const subtotalNum = abonoNum + mantNum + repuestosTotal;
+      const ivaNum = subtotalNum * 0.19;
+      const totalNum = subtotalNum + ivaNum;
+
+      // 8) Formateamos cada cifra a “de-DE” con 2 decimales y coma decimal
+      const formatear = (num) =>
+        num
+          .toLocaleString('de-DE', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+
+      const abonoForm = formatear(abonoNum);
+      const mantForm = formatear(mantNum);
+      const repuestosForm = formatear(repuestosTotal);
+      const subtotalForm = formatear(subtotalNum);
+      const ivaForm = formatear(ivaNum);
+      const totalForm = formatear(totalNum);
+
+      // 9) Construimos la tabla de totales
+      const resumenContainer = document.getElementById('resumenTotalesContainer');
+      resumenContainer.innerHTML = `
+        <table class="tabla-totales">
+          <tr>
+            <td class="label">ABONO</td>
+            <td class="valor">$ ${abonoForm}</td>
+          </tr>
+          <tr>
+            <td class="label">MANTENIMIENTO</td>
+            <td class="valor">$ ${mantForm}</td>
+          </tr>
+          <tr>
+            <td class="label">REPUESTOS</td>
+            <td class="valor">$ ${repuestosForm}</td>
+          </tr>
+          <tr>
+            <td class="label">SUBTOTAL</td>
+            <td class="valor">$ ${subtotalForm}</td>
+          </tr>
+          <tr>
+            <td class="label">IVA (19%)</td>
+            <td class="valor">$ ${ivaForm}</td>
+          </tr>
+          <tr class="total-row">
+            <td class="label">TOTAL</td>
+            <td class="valor">$ ${totalForm}</td>
+          </tr>
+        </table>
+      `;
+
+      // 10) Actualizamos el campo "TÉCNICO QUE REALIZÓ LA REVISIÓN" en la vista previa
+      const seleccionado = document.getElementById('tecnicoSelect').value;
+      document.getElementById('tecnicoRevision').textContent =
+        seleccionado || '---';
+    }
+
+    // ---------------------------------------------------
+    // Función para dibujar los círculos rojos (marcadores)
+    // sobre la imagen del modelo. Antes de pintar,
+    // elimina **todos** los .marcador-prev que ya existan.
+    // ---------------------------------------------------
+    function dibujarMarcadores() {
+      const repuestosJSON = localStorage.getItem('repuestosSeleccionados');
+      const contenedorImg = document.getElementById('contenedorImagenPrev');
+      const imgTag = document.getElementById('imagenModeloPrev');
+
+      // 1) Eliminar todos los marcadores viejos
+      contenedorImg.querySelectorAll('.marcador-prev').forEach((mk) => mk.remove());
+
+      if (!repuestosJSON) return;
+      const repuestosArray = JSON.parse(repuestosJSON);
+      if (!imgTag.src) return;
+
+      // Si la imagen aún no está cargada, esperaremos a que lo esté
+      if (!imgTag.complete) {
+        imgTag.addEventListener('load', () => {
+          ubicarCadaMarcador(repuestosArray, imgTag, contenedorImg);
+        });
+      } else {
+        ubicarCadaMarcador(repuestosArray, imgTag, contenedorImg);
+      }
+    }
+
+    // ---------------------------------------------------
+    // Función que sitúa cada marcador de acuerdo a las coordenadas
+    // ya escaladas al tamaño actual de la imagen (800×600 → w×h)
+    // ---------------------------------------------------
+    function ubicarCadaMarcador(repuestosArray, imgTag, contenedorImg) {
+      const displayedWidth = imgTag.clientWidth;
+      const displayedHeight = imgTag.clientHeight;
+      const factorX = displayedWidth / 800;
+      const factorY = displayedHeight / 600;
+
+      repuestosArray.forEach((item) => {
+        const mk = document.createElement('div');
+        mk.className = 'marcador-prev';
+        const posX = item.x * factorX;
+        const posY = item.y * factorY;
+        mk.style.left = `${posX}px`;
+        mk.style.top = `${posY}px`;
+
+        // Al hacer clic en el círculo, lo eliminamos del localStorage y volvemos a dibujar
+        mk.addEventListener('click', () => {
+          const actuales = JSON.parse(
+            localStorage.getItem('repuestosSeleccionados') || '[]'
+          );
+          const filtrados = actuales.filter((r) => r.numero !== item.numero);
+          localStorage.setItem('repuestosSeleccionados', JSON.stringify(filtrados));
+          actualizarVista();
+        });
+
+        contenedorImg.appendChild(mk);
+      });
+    }
+
+    // ---------------------------------------------------
+    // Función para imprimir únicamente la sección de cotización
+    // ---------------------------------------------------
+    function imprimirVista() {
+      actualizarVista(); // Asegura tener los marcadores actualizados
+      const originalBody = document.body.innerHTML;
+      const cotizacionContent = document.getElementById('cotizacion').innerHTML;
+      document.body.innerHTML = `
+        <div style="padding:20px; font-family: Roboto, sans-serif;">
+          ${cotizacionContent}
+        </div>
+      `;
+      window.print();
+      document.body.innerHTML = originalBody;
+      location.reload();
+    }
+
+    // ---------------------------------------------------
+    // Cada vez que el dropdown cambie, actualizamos el campo de técnico en la vista
+    // ---------------------------------------------------
+    document.getElementById('tecnicoSelect').addEventListener('change', function() {
+      // Solo actualizamos la parte del técnico; el resto (totales, tabla, etc.) puede quedarse igual
+      const seleccionado = this.value;
+      document.getElementById('tecnicoRevision').textContent = seleccionado || '---';
+    });
+
+    // Nota: el usuario hará clic en "Actualizar Vista" para refrescar datos de tabla y totales.
+  </script>
+</body>
+</html>

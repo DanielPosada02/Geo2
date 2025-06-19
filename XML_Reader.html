@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Detalle de Productos con Formato</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px 100px;
+      background: #f9f9f9;
+      margin: 0;
+    }
+
+    .btn {
+      background-color: #2164D9;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-right: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn:hover {
+      background-color: #184a99;
+      transform: scale(1.03);
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .btn-inventario {
+      background-color: #2164D9;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: filter 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-inventario:hover {
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+      filter: brightness(1.2);
+    }
+
+    .btn-mini {
+      border: none;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      margin: 0 2px;
+      color: white;
+    }
+
+    .btn-mini.green { background-color: #28a745; }
+    .btn-mini.red { background-color: #dc3545; }
+    .btn-mini.blue { background-color: #007bff; }
+
+    .btn-mini:hover {
+      filter: brightness(1.15);
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    .tabla-flex-superior {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tabla-container,
+    .tabla-totales-container {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .tabla-info, .tabla-totales {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .tabla-info td,
+    .tabla-totales td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .etiqueta {
+      background-color: #ffffff;
+      font-weight: bold;
+      width: 180px;
+      white-space: nowrap;
+    }
+
+    .valor {
+      background-color: #fff;
+    }
+
+    table:not(.tabla-info):not(.tabla-totales) {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0;
+      background: white;
+    }
+
+    th, td {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #ffffff;
+      font-weight: bold;
+    }
+
+    .tabla-productos-container {
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-controls">
+  <div>
+    <button class="btn" onclick="document.getElementById('file-input').click()">📄 Subir XML</button>
+    <button class="btn" onclick="exportarTablaAExcel()">📅 Descargar Excel</button>
+  </div>
+  <button id="cargarInventarioBtn" class="btn-inventario" onclick="cargarInventarioDesdeTabla()">
+    <img src="https://img.icons8.com/ios-filled/50/ffffff/upload.png" class="icon" width="18" height="18" />
+    Cargar Inventario
+  </button>
+</div>
+<input type="file" id="file-input" accept=".xml" />
+
+<div class="layout">
+  <div class="tabla-flex-superior">
+    <div class="tabla-container">
+      <table class="tabla-info">
+        <tr><td class="etiqueta">Factura de Venta</td><td class="valor" id="codigo"></td></tr>
+        <tr><td class="etiqueta">Empresa 1</td><td class="valor" id="nombre-empresa1"></td></tr>
+        <tr><td class="etiqueta">Empresa 2</td><td class="valor" id="nombre-empresa2"></td></tr>
+        <tr><td class="etiqueta">Fecha de Expedición</td><td class="valor" id="fecha-expedicion"></td></tr>
+        <tr><td class="etiqueta">Fecha de Vencimiento</td><td class="valor" id="fecha-vencimiento"></td></tr>
+      </table>
+    </div>
+
+    <div class="tabla-totales-container">
+      <table class="tabla-totales">
+        <tr><td class="etiqueta">Valor Bruto</td><td class="valor" id="valor-bruto"></td></tr>
+        <tr><td class="etiqueta">Descuento</td><td class="valor" id="valor-descuento"></td></tr>
+        <tr><td class="etiqueta">Subtotal</td><td class="valor" id="valor-subtotal"></td></tr>
+        <tr><td class="etiqueta">IVA</td><td class="valor" id="valor-iva"></td></tr>
+        <tr><td class="etiqueta">Neto a Pagar</td><td class="valor" id="valor-neto"></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="tabla-productos-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Descripción</th>
+        <th>Cantidad</th>
+        <th>U/M</th>
+        <th>Valor Unitario</th>
+        <th>Tarifa Descuento (%)</th>
+        <th>Valor Neto Unitario</th>
+        <th>% Impuesto</th>
+        <th>Valor Impuesto</th>
+        <th>Valor Total</th>
+        <th style="text-align: center;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-productos"></tbody>
+  </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+  let datosFactura = null;
+  
+  const formatoMoneda = (valor) => {
+    const numero = parseFloat(valor);
+    return isNaN(numero) ? '$0,00' : numero.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+  };
+  
+  document.getElementById('file-input').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      localStorage.setItem("facturaCargada", e.target.result); // Persistencia
+  
+      mostrarFacturaDesdeXML(e.target.result);
+    };
+    reader.readAsText(file);
+  });
+  
+  function limpiarVistaFactura() {
+    document.getElementById("codigo").textContent = "";
+    document.getElementById("nombre-empresa1").textContent = "";
+    document.getElementById("nombre-empresa2").textContent = "";
+    document.getElementById("fecha-expedicion").textContent = "";
+    document.getElementById("fecha-vencimiento").textContent = "";
+    document.getElementById("valor-bruto").textContent = "";
+    document.getElementById("valor-descuento").textContent = "";
+    document.getElementById("valor-subtotal").textContent = "";
+    document.getElementById("valor-iva").textContent = "";
+    document.getElementById("valor-neto").textContent = "";
+    document.getElementById("tabla-productos").innerHTML = "";
+    datosFactura = null;
+  }
+
+  function mostrarFacturaDesdeXML(xmlString) {
+    limpiarVistaFactura();
+    const parser = new DOMParser();
+    const mainXML = parser.parseFromString(xmlString, 'application/xml');
+    const tbody = document.getElementById('tabla-productos');
+    tbody.innerHTML = '';
+  
+    const descNodes = mainXML.getElementsByTagNameNS('*', 'Description');
+    let embeddedText = null;
+    for (let node of descNodes) {
+      if (node.textContent.includes('<Invoice')) {
+        embeddedText = node.textContent.trim();
+        break;
+      }
+    }
+  
+    if (!embeddedText) {
+      limpiarVistaFactura();
+      tbody.innerHTML = '<tr><td colspan="11">No se encontró XML embebido en CDATA.</td></tr>';
+      return;
+    }
+  
+    const embeddedXML = parser.parseFromString(embeddedText, 'application/xml');
+  
+    const numeroFactura = embeddedXML.getElementsByTagNameNS('*', 'ID')[0]?.textContent.trim() || '';
+    const fechaFactura = embeddedXML.getElementsByTagNameNS('*', 'IssueDate')[0]?.textContent.trim() || '';
+    const fechaVencimiento = embeddedXML.getElementsByTagNameNS('*', 'DueDate')[0]?.textContent.trim() || '';
+    const receiver = mainXML.getElementsByTagNameNS('*', 'ReceiverParty')[0];
+    const clienteFactura = receiver?.getElementsByTagNameNS('*', 'RegistrationName')[0]?.textContent.trim() || 'Desconocido';
+    const sender = mainXML.getElementsByTagNameNS('*', 'SenderParty')[0];
+    const empresa1 = sender?.getElementsByTagNameNS('*', 'RegistrationName')[0]?.textContent.trim() || 'Desconocido';
+  
+    document.getElementById('codigo').textContent = numeroFactura;
+    document.getElementById('fecha-expedicion').textContent = fechaFactura;
+    document.getElementById('fecha-vencimiento').textContent = fechaVencimiento;
+    document.getElementById('nombre-empresa1').textContent = empresa1;
+    document.getElementById('nombre-empresa2').textContent = clienteFactura;
+  
+    const invoiceLines = embeddedXML.getElementsByTagNameNS('*', 'InvoiceLine');
+    let totalBruto = 0, totalDescuento = 0, totalIVA = 0;
+  
+    for (let line of invoiceLines) {
+      const cantidadNode = line.getElementsByTagNameNS('*', 'InvoicedQuantity')[0];
+      const cantidad = cantidadNode?.textContent.trim() || '';
+      const unidad = cantidadNode?.getAttribute('unitCode') || '';
+      const codigo = line.getElementsByTagNameNS('*', 'StandardItemIdentification')[0]
+                      ?.getElementsByTagNameNS('*', 'ID')[0]?.textContent.trim() || '';
+      const descripcion = line.getElementsByTagNameNS('*', 'Description')[0]?.textContent.trim() || '';
+      const precioUnitario = parseFloat(line.getElementsByTagNameNS('*', 'PriceAmount')[0]?.textContent.trim()) || 0;
+      const descuento = parseFloat(line.getElementsByTagNameNS('*', 'MultiplierFactorNumeric')[0]?.textContent.trim()) || 0;
+      const valorNeto = parseFloat(line.getElementsByTagNameNS('*', 'LineExtensionAmount')[0]?.textContent.trim()) || 0;
+      const porcentajeIVA = line.getElementsByTagNameNS('*', 'Percent')[0]?.textContent.trim() || '0';
+      const valorIVA = parseFloat(line.getElementsByTagNameNS('*', 'TaxAmount')[0]?.textContent.trim()) || 0;
+      const valorTotal = valorNeto + valorIVA;
+  
+      const cantidadNum = parseFloat(cantidad) || 0;
+      const valorBruto = precioUnitario * cantidadNum;
+      const valorDescuento = valorBruto - valorNeto;
+  
+      totalBruto += valorBruto;
+      totalDescuento += valorDescuento;
+      totalIVA += valorIVA;
+  
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${codigo}</td>
+        <td>${descripcion}</td>
+        <td>${cantidad}</td>
+        <td>${unidad}</td>
+        <td>${formatoMoneda(precioUnitario)}</td>
+        <td>${(descuento).toFixed(2)}%</td>
+        <td>${formatoMoneda(valorNeto)}</td>
+        <td>${parseFloat(porcentajeIVA).toFixed(2)}%</td>
+        <td>${formatoMoneda(valorIVA)}</td>
+        <td>${formatoMoneda(valorTotal)}</td>
+        <td style="text-align:center">
+          <button class="btn-mini green" onclick="agregarCantidad(this)">➕</button>
+          <button class="btn-mini red" onclick="quitarCantidad(this)">➖</button>
+          <button class="btn-mini blue" onclick="eliminarFila(this)">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+  
+    const subtotal = totalBruto - totalDescuento;
+    const netoPagar = subtotal + totalIVA;
+  
+    document.getElementById('valor-bruto').textContent = formatoMoneda(totalBruto);
+    document.getElementById('valor-descuento').textContent = formatoMoneda(totalDescuento);
+    document.getElementById('valor-subtotal').textContent = formatoMoneda(subtotal);
+    document.getElementById('valor-iva').textContent = formatoMoneda(totalIVA);
+    document.getElementById('valor-neto').textContent = formatoMoneda(netoPagar);
+  
+    datosFactura = {
+      numero: numeroFactura,
+      empresa1,
+      empresa2: clienteFactura,
+      fechaExpedicion: fechaFactura,
+      fechaVencimiento,
+      neto: document.getElementById("valor-neto").textContent
+    };
+  }
+  
+  function agregarCantidad(btn) {
+    const row = btn.closest("tr");
+    const cantidadCell = row.children[2];
+    let cantidad = parseFloat(cantidadCell.textContent);
+    cantidadCell.textContent = (cantidad + 1).toFixed(2);
+  }
+  
+  function quitarCantidad(btn) {
+    const row = btn.closest("tr");
+    const cantidadCell = row.children[2];
+    let cantidad = parseFloat(cantidadCell.textContent);
+    if (cantidad > 0) {
+      cantidadCell.textContent = (cantidad - 1).toFixed(2);
+    }
+  }
+  
+  function eliminarFila(btn) {
+    const row = btn.closest("tr");
+    row.remove();
+  }
+  
+  function exportarTablaAExcel() {
+    alert("Función aún no implementada.");
+  }
+  
+  function cargarInventarioDesdeTabla() {
+    if (!datosFactura) {
+      alert("Primero sube una factura para cargar al inventario.");
+      return;
+    }
+  
+    const rows = document.querySelectorAll("#tabla-productos tr");
+    let inventario = JSON.parse(localStorage.getItem("excelData")) || [];
+  
+    rows.forEach(row => {
+      const ref = row.children[0].textContent;
+      const cantidad = parseFloat(row.children[2].textContent);
+  
+      const item = inventario.find(p => p.Referencia === ref);
+      if (item) {
+        item.Cantidad = (parseFloat(item.Cantidad) || 0) + cantidad;
+      }
+    });
+  
+    localStorage.setItem("excelData", JSON.stringify(inventario));
+  
+    // Guardar factura en historial
+    const historial = JSON.parse(localStorage.getItem("historialFacturas")) || [];
+    const yaExiste = historial.some(f => f.numero === datosFactura.numero);
+    if (!yaExiste) {
+      historial.push(datosFactura);
+      localStorage.setItem("historialFacturas", JSON.stringify(historial));
+      alert("Factura cargada y agregada al historial.");
+    } else {
+      alert("Factura ya estaba en el historial.");
+    }
+  
+    limpiarVistaFactura();
+    localStorage.removeItem("facturaCargada");
+  }
+  
+  // Mostrar factura si había una guardada
+  window.addEventListener("load", () => {
+    const xmlGuardado = localStorage.getItem("facturaCargada");
+    if (xmlGuardado) {
+      mostrarFacturaDesdeXML(xmlGuardado);
+    }
+  });
+  </script>
+  
+  </body>
+  </html>
+  
